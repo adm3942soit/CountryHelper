@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface CountryService {
     List<Country> readCountries() throws IOException;
-    List<Country> loadFromJson();
+    List<Country> load();
     LinkedList<String> getTopBiggestPopulationDensityCountries(int count);
     List<Country> getListCountriesWithGivenCurrency(String currency);
     List<Country> getListCountriesByPattern(String pattern);

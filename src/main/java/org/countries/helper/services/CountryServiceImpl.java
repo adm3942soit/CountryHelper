@@ -40,18 +40,17 @@ public class CountryServiceImpl implements CountryService {
         List<Country> countries;
         String jsonString = "";
         try {
-            jsonString = readFromSite();
+            jsonString = read();
             ObjectMapper mapper = new ObjectMapper();
             countries = mapper.readValue(jsonString, typeReference);
         } catch (Exception ex) {
-            countries = loadFromJson();
+            countries = load();
         }
         return countries;
     }
 
-    private String readFromSite() throws IOException {
+    private String read() {
         StringBuilder inputBuffer = new StringBuilder();
-        BufferedReader in = null;
         try {
             URL url = new URL(BASE_URL);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -60,10 +59,9 @@ public class CountryServiceImpl implements CountryService {
             urlConnection.connect();
             if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 log.error("Can't connect to " + BASE_URL);
-                throw new RuntimeException("Can't connect to " + BASE_URL);
             }
 
-            in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 inputBuffer.append(inputLine);
@@ -72,16 +70,12 @@ public class CountryServiceImpl implements CountryService {
 
         } catch (IOException | RuntimeException e) {
             log.error(e.getMessage());
-        }finally {
-            if(in!=null) {
-                in.close();
-            }
         }
         return inputBuffer.toString();
     }
 
     @Override
-    public List<Country> loadFromJson() {
+    public List<Country> load() {
         ObjectMapper mapper = new ObjectMapper();
 
         InputStream inputStream = TypeReference.class.getResourceAsStream("/data/json/countries.json");
@@ -101,7 +95,7 @@ public class CountryServiceImpl implements CountryService {
         if (count == 0) {
             return new LinkedList<>();
         }
-        List<Country> all = loadFromJson();
+        List<Country> all = load();
         Map<String, Double> densityMap = new HashMap<>();
         ValueComparator bvc = new ValueComparator(densityMap);
         all.forEach(
@@ -121,7 +115,7 @@ public class CountryServiceImpl implements CountryService {
         if (Strings.isNullOrEmpty(currency)) {
             return Collections.emptyList();
         }
-        List<Country> all = loadFromJson();
+        List<Country> all = load();
         List<List<Currency>> currenciesFromCountries = all.stream()
                 .map(country -> country.getCurrencies())
                 .distinct()
@@ -145,7 +139,7 @@ public class CountryServiceImpl implements CountryService {
         if (Strings.isNullOrEmpty(pattern)) {
             return Collections.emptyList();
         }
-        return loadFromJson().stream().filter(country -> patternCountries.matcher(country.getName()).matches()).collect(Collectors.toList());
+        return load().stream().filter(country -> patternCountries.matcher(country.getName()).matches()).collect(Collectors.toList());
     }
 
     class ValueComparator implements Comparator<String> {
